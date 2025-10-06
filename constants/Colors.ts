@@ -13,6 +13,7 @@ export const Colors = {
     title:"#D9D9D9",
     text: "#000000",
     textlight:"#D9D9D9",
+    disabled: "#555555",
 
     // Icons
     icon:"#D9D9D9", 

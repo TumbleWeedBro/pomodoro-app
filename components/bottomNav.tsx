@@ -4,11 +4,11 @@ import Svg, { Path } from 'react-native-svg'
 import Animated from 'react-native-reanimated'
 import { Colors } from "../constants/Colors";
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
-
-
-export default function BottomNav() {
-    const AnimatedSvg = Animated.createAnimatedComponent(Svg)
+const Agenda = () => {
+    const AnimatedSvg = Animated.createAnimatedComponent(Svg);
+    const router = useRouter();
 
     return(
 
@@ -30,19 +30,20 @@ export default function BottomNav() {
                 </AnimatedSvg>
                 </View>
             </View>
-
                 <View style = {styles.plusIcon}>
                     <Ionicons name="add-circle" size={75} color={Colors.primary} />
                 </View>
 
-                <View style = {{ position:'absolute', bottom: '40%', left: '10%'}}>
+                <TouchableOpacity style = {[ styles.navButton, {position:'absolute', bottom: '40%', left: '10%'}]}
+                                    onPress= {()=> router.push('/')}>
                     <Ionicons name="home" size={40} color={Colors.accentDark} />
-                </View>
+                </TouchableOpacity>
 
-                <View style = {{ position:'absolute', bottom: '40%', left: '25%'}}>
-                    <Ionicons name="calendar-outline" size={40} color={Colors.surface} />
-                </View>
-                
+                <TouchableOpacity style = {[styles.navButton, { position:'absolute', bottom: '40%', left: '25%'}]}
+                                    onPress={() => router.push('./calendar')}>
+                        <Ionicons name="calendar-outline" size={40} color={Colors.surface} />
+                </TouchableOpacity>
+
                 <View style = {{ position:'absolute', bottom: '40%', right: '25%'}}>
                     <Ionicons name="stats-chart-outline" size={40} color={Colors.surface} />
                 </View>
@@ -75,6 +76,10 @@ const styles = StyleSheet.create({
         borderRadius:30,
     },
 
+    navButton: {
+
+    },
+
     animatedSvg: {
        alignSelf: 'center',
     //    bottom: '10%'
@@ -86,3 +91,5 @@ const styles = StyleSheet.create({
         top: '-20%'    
     }
 })
+
+export default Agenda

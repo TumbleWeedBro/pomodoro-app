@@ -1,9 +1,7 @@
-import { Text, View, ScrollView, StyleSheet } from "react-native";
-import HeaderCard  from "../components/headerCard";
+import { Text, View, ScrollView, StyleSheet, TouchableOpacity} from "react-native";
 import WelcomeCard from "../components/welcomeCard";
 import QuickFocus from "../components/quickFocus";
 import TaskCard from "../components/taskCard";
-import BottomNav from "../components/bottomNav";
 import { Colors } from "../constants/Colors";
 
 export default function HomeScreen() {
@@ -16,7 +14,6 @@ export default function HomeScreen() {
           paddingVertical:20,
           paddingHorizontal:5
         }}>
-        <HeaderCard name="Mike" />
         <WelcomeCard />
         <Text style = {styles.text}>Quick Focus</Text>
         <QuickFocus />
@@ -24,7 +21,6 @@ export default function HomeScreen() {
         {/* probably some loop to display task groups here */}
         <TaskCard/>
       </ScrollView>
-      <BottomNav/>
     </View>
   );
 }
@@ -34,6 +30,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding:5,
         gap:20,
+        
   },
 
   text: {
