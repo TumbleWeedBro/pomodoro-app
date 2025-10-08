@@ -3,7 +3,6 @@ import {int, sqliteTable, text} from "drizzle-orm/sqlite-core";
 export const todos = sqliteTable("todos", {
     id: int("id").primaryKey({autoIncrement: true}),
     title: text("title").notNull(),
-    description: text("description"),
     due_date: text("due_date"),
     date_created: text("date_created").notNull(),
     priority: int("priority"),

@@ -1,15 +1,16 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Dimensions} from 'react-native';
-import Svg, { Path } from 'react-native-svg'
-import Animated from 'react-native-reanimated'
-import { Colors } from "../constants/Colors";
+import useModal from '@/hooks/useModalContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
+import { Colors } from "../constants/Colors";
 
-const Agenda = () => {
+export const BottomNav = () => {
     const AnimatedSvg = Animated.createAnimatedComponent(Svg);
     const router = useRouter();
-
+    const { open, modalOpen } = useModal();
     return(
 
         <View style = {styles.container}>
@@ -30,11 +31,11 @@ const Agenda = () => {
                 </AnimatedSvg>
                 </View>
             </View>
-                <View style = {styles.plusIcon}>
+                <TouchableOpacity onPress={() => { open(); console.log(modalOpen); }} style = {[styles.plusIcon]}>
                     <Ionicons name="add-circle" size={75} color={Colors.primary} />
-                </View>
+                </TouchableOpacity>
 
-                <TouchableOpacity style = {[ styles.navButton, {position:'absolute', bottom: '40%', left: '10%'}]}
+                <TouchableOpacity style = {[ styles.navButton, {position:'absolute', bottom: '40%', left: '10%',}]}
                                     onPress= {()=> router.push('/')}>
                     <Ionicons name="home" size={40} color={Colors.accentDark} />
                 </TouchableOpacity>
@@ -88,8 +89,9 @@ const styles = StyleSheet.create({
 
     plusIcon: {
         position: 'absolute',
-        top: '-20%'    
+        top: '-20%',
+        // backgroundColor: Colors.green
+        
     }
 })
 
-export default Agenda

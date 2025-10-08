@@ -1,19 +1,22 @@
 import { Stack } from "expo-router";
+import React, { Suspense, useState } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { BottomNav } from "../components/bottomNav";
+import HeaderCard from "../components/headerCard";
 import { Colors } from "../constants/Colors";
-import BottomNav from "../components/bottomNav";
-import HeaderCard  from "../components/headerCard";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
-import { Suspense, useEffect } from "react";
+
 
 // database stuff
-import * as SQLite from 'expo-sqlite';
-import { drizzle } from 'drizzle-orm/expo-sqlite';
-import { SQLiteProvider, useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
-import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import migrations from '@/drizzle/migrations';
-import { addDummyData } from "@/db/addDummyData";
-
+import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
+import * as SQLite from 'expo-sqlite';
+import { SQLiteProvider } from 'expo-sqlite';
 export const DATABASE_NAME ='tasks';
+
+// contexts
+import { AddModal } from "@/components/modal/addModal";
+import { modalContext, ModalContextType } from "@/context/modalContext";
 
 export default function RootLayout()  {
 
@@ -30,30 +33,40 @@ export default function RootLayout()  {
   //   }
   // }, [success])
 
+  const theme = Colors;
 
-  const theme = Colors
+  // this is getting stuck in this state, might want to just use a context to get this over with cause damnn
+  const [modalOpen, setModalOpen] = useState(false);
+  const modalState: ModalContextType = [modalOpen, setModalOpen];
+
+  // console.log("Modal state:", modalOpen);
   return (
-  <Suspense fallback = {<ActivityIndicator size="large"/>}>
-    <SQLiteProvider 
-      databaseName={DATABASE_NAME}
-      options={{ enableChangeListener: true}}
-      useSuspense>
-      <View style= {styles.container}>
-        <HeaderCard name="Mike" />
-
-            <Stack 
-              screenOptions= {{
-                headerShown:false,
-                
-                contentStyle: {
-                  backgroundColor: theme.background,
-                },
-              }}>         
-            </Stack>
-          <BottomNav/>
-      </View>
-    </SQLiteProvider>
-  </Suspense>
+      <modalContext.Provider value={[modalOpen, setModalOpen]}>
+        <Suspense fallback = {<ActivityIndicator size="large"/>}>
+          <SQLiteProvider 
+            databaseName={DATABASE_NAME}
+            options={{ enableChangeListener: true}}
+            useSuspense>
+          
+            <View style= {styles.container}>
+              <HeaderCard name="Mike" />
+                  <Stack 
+                    screenOptions= {{
+                      headerShown:false,               
+                      contentStyle: {
+                        backgroundColor: theme.background,
+                        justifyContent:'center',
+                       
+                      },
+                    }}>         
+                  </Stack>
+                  <AddModal/>
+                <BottomNav/>
+            </View>
+          
+          </SQLiteProvider>
+        </Suspense>
+   </modalContext.Provider>
 )
 }
 

@@ -17,7 +17,6 @@ export default function HomeScreen() {
   const db = useSQLiteContext();
   const drizzleDb = drizzle(db, {schema});
 
-
   useEffect(() => {
     const load = async () => {
       const data = await drizzleDb.query.todos.findMany();
@@ -46,6 +45,8 @@ export default function HomeScreen() {
           <TouchableOpacity onPress={() => router.push('./tasks')}>
             <TaskGroupCard/>
           </TouchableOpacity>
+
+
         </ScrollView>
 
     </View>
