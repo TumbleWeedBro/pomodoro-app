@@ -2,7 +2,7 @@ import  { Stack } from "expo-router"
 import { Colors } from "@/constants/Colors";
 
 
-export default function CalendarLayout() {
+export default function TasksLayout() {
     return (
         <Stack 
         screenOptions={{
@@ -13,4 +13,5 @@ export default function CalendarLayout() {
         }
     
     }/>
+
 )}

@@ -1,29 +1,27 @@
 import { Text, View, ScrollView, StyleSheet, TouchableOpacity} from "react-native";
 import WelcomeCard from "../components/welcomeCard";
 import QuickFocus from "../components/quickFocus";
-import TaskCard from "../components/taskCard";
+import TaskGroupCard from "../components/taskGroupCard";
 import { Colors } from "../constants/Colors";
 import { useSQLiteContext } from "expo-sqlite";
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import { useEffect, useState } from "react";
-import {Todo, TaskGroup} from "@/db/schema"
-import * as schema from "@/db/schema"
-
-
-
+import { useRouter } from 'expo-router';
+import {Todo, TaskGroup} from "@/db/schema";
+import * as schema from "@/db/schema";
 
 export default function HomeScreen() {
-
-  const [data, setData] = useState<Todo[]>([])
+  const router = useRouter();
+  const [data, setData] = useState<Todo[]>([]);
 
   const db = useSQLiteContext();
-  const drizzleDb = drizzle(db, {schema})
+  const drizzleDb = drizzle(db, {schema});
 
 
   useEffect(() => {
     const load = async () => {
       const data = await drizzleDb.query.todos.findMany();
-      console.log("data: ", data)
+      // console.log("data: ", data)
       setData(data)
     };
 
@@ -45,7 +43,9 @@ export default function HomeScreen() {
           <QuickFocus />
           <Text style = {styles.text}>Task Groups</Text>
           {/* probably some loop to display task groups here */}
-          <TaskCard/>
+          <TouchableOpacity onPress={() => router.push('./tasks')}>
+            <TaskGroupCard/>
+          </TouchableOpacity>
         </ScrollView>
 
     </View>

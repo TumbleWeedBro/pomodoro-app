@@ -1,11 +1,17 @@
 import { todos, task_groups } from "@/db/schema";
-import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
+import { ExpoSQLiteDatabase} from "drizzle-orm/expo-sqlite";
+import {sql} from "drizzle-orm";
 
 import AsyncStorage from "expo-sqlite/kv-store";
 
 export async function addDummyData(db: ExpoSQLiteDatabase) {
   const value = AsyncStorage.getItemSync('dbInitialized');
   if (value) return; // Data already added
+
+  console.log("Clearing existing data...");
+  const statement = sql`DELETE FROM ${todos}; DELETE FROM ${task_groups};`
+  await db.run(statement);
+
 
   console.log("Adding dummy data...");
 

@@ -2,27 +2,29 @@ import { View, Text, StyleSheet, TouchableOpacity} from "react-native";
 import React, {useState} from 'react';
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from '@expo/vector-icons';
+import TaskCard from "@/components/taskCard";
 
-type TaskCardProp = {
-    task:string
-}
 
-const TaskCard = ({task}:TaskCardProp) => {
+
+
+export default function TaskScreen() {
+
     return(
-        <View style = {styles.taskCard}>
-            <TouchableOpacity>
-                <Ionicons name="ellipse-outline" size={40} color={Colors.surface} />
-            </TouchableOpacity>
-            <Text style = {styles.taskTitle}>{task}</Text>
+        <View style = {styles.container}> 
+            <TaskCard task="Study Chapter 4"/>
+            <TaskCard task="Study Chapter 4"/>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
+    container : {
+        flex:1,
+    },
 
     taskCard: {
         width: "100%",
-        height:60, 
+        height:50, 
         backgroundColor: Colors.background,
         marginTop: 20,
         flexDirection: 'row',
@@ -39,6 +41,3 @@ const styles = StyleSheet.create({
         color: Colors.textlight,
     },
 })
-
-
-export default TaskCard

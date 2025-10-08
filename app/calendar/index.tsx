@@ -4,7 +4,6 @@ import Agenda  from "@/components/calendar/agenda";
 import React, {useState} from 'react';
 import AgendaTaskCard from "@/components/calendar/agendaTaskCard";
 import { Colors } from "@/constants/Colors";
-import { useRef } from "react";
 // import {Agenda} from "react-native-calendars"
 
 

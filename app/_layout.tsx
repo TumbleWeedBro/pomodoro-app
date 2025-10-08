@@ -21,14 +21,14 @@ export default function RootLayout()  {
   const db = drizzle(expo);
   const { success, error } = useMigrations(db, migrations)
 
-  console.log("Success: ", success);
-  console.log("Error: ", error);
+  // console.log("Success: ", success);
+  // console.log("Error: ", error);
 
-  useEffect(() => {
-    if(success) {
-      addDummyData(db);
-    }
-  }, [success])
+  // useEffect(() => {
+  //   if(success) {
+  //     addDummyData(db);
+  //   }
+  // }, [success])
 
 
   const theme = Colors
