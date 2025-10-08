@@ -6,8 +6,10 @@ export const Colors = {
 
     // backgrounds
     navBackground: "#746969",
-    background: "#342F2F",
-    surface: "#D9D9D9",
+    // background: "#342F2F",
+    background: "#2B2727",
+    surface: "#EDEDED" , // softer, less harsh
+    // surface: "#D9D9D9",
 
     // text colors
     title:"#D9D9D9",

@@ -31,7 +31,7 @@ export const BottomNav = () => {
                 </AnimatedSvg>
                 </View>
             </View>
-                <TouchableOpacity onPress={() => { open(); console.log(modalOpen); }} style = {[styles.plusIcon]}>
+                <TouchableOpacity onPress={() => { open() }} style = {[styles.plusIcon]}>
                     <Ionicons name="add-circle" size={75} color={Colors.primary} />
                 </TouchableOpacity>
 

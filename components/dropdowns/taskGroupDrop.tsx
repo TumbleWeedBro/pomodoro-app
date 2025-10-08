@@ -3,32 +3,30 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { Ionicons } from '@expo/vector-icons';
-
-
+import { CreateTaskState } from '@/hooks/createTaskGroupContext';
 
 const TaskGroupDropdown = () => {
   const [country, setCountry] = useState(null);
-  const [state, setState] = useState(null);
-  const [city, setCity] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
+  const [taskGroup , setTaskGroup] = useState(null);
+  const { setTaskGroupTrue, setTaskGroupFalse } = CreateTaskState();
 
+  const onChangeTaskGroup = (item:any) => {
+    if(item.value === 'CTG') {
+      setTaskGroupTrue();
+      return;
+    }
+
+    setTaskGroup(item.value);
+    setIsFocus(false);
+    setTaskGroupFalse
+  }
+  
+  const existingTaskGroups:any = {};
   // Static data
-  const countryData = [
-    { value: 'NG', label: 'Nigeria' },
-    { value: 'US', label: 'United States' },
-    { value: 'CA', label: 'Canada' },
-  ];
-
-  const stateData = [
-    { value: 'LA', label: 'Lagos' },
-    { value: 'AB', label: 'Abuja' },
-    { value: 'RI', label: 'Rivers' },
-  ];
-
-  const cityData = [
-    { value: 'IK', label: 'Ikoyi' },
-    { value: 'VI', label: 'Victoria Island' },
-    { value: 'AL', label: 'Alimosho' },
+  const taskGroupOptions  = [
+    { value: 'CTG', label: 'Create Task Group' },
+    { value: 'ATV', label: 'Another task' },
   ];
 
   return (
@@ -40,17 +38,14 @@ const TaskGroupDropdown = () => {
             selectedTextStyle={styles.selectedTextStyle}
             inputSearchStyle={styles.inputSearchStyle}
             iconStyle={styles.iconStyle}
-            data={countryData}
+            data={taskGroupOptions}
             labelField="label"
             valueField="value"
-            placeholder={!isFocus ? 'Select country' : '...'}
-            value={country}
+            placeholder={!isFocus ? 'Choose or Create Task Group' : '...'}
+            value={taskGroup}
             onFocus={() => setIsFocus(true)}
             onBlur={() => setIsFocus(false)}
-            onChange={item => {
-              setCountry(item.value);
-              setIsFocus(false);
-            }}
+            onChange={onChangeTaskGroup}
           />
         </View>
         <View style={styles.priorityContainer}>
