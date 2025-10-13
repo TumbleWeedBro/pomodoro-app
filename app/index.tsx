@@ -7,19 +7,19 @@ import { useSQLiteContext } from "expo-sqlite";
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import { useEffect, useState } from "react";
 import { useRouter } from 'expo-router';
-import {Todo, TaskGroup} from "@/db/schema";
+import { TaskGroup} from "@/db/schema";
 import * as schema from "@/db/schema";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [data, setData] = useState<Todo[]>([]);
+  const [data, setData] = useState<TaskGroup[]>([]);
 
   const db = useSQLiteContext();
   const drizzleDb = drizzle(db, {schema});
 
   useEffect(() => {
     const load = async () => {
-      const data = await drizzleDb.query.todos.findMany();
+      const data = await drizzleDb.query.task_groups.findMany();
       // console.log("data: ", data)
       setData(data)
     };
@@ -42,11 +42,17 @@ export default function HomeScreen() {
           <QuickFocus />
           <Text style = {styles.text}>Task Groups</Text>
           {/* probably some loop to display task groups here */}
-          <TouchableOpacity onPress={() => router.push('./tasks')}>
-            <TaskGroupCard/>
-          </TouchableOpacity>
-
-
+          {data.map((element, i) => (
+            <TouchableOpacity
+              key={element.id ?? i}
+              onPress={() => router.push('./tasks')}
+            >
+              <TaskGroupCard
+              key={element.id} 
+              id ={element.id}
+              name={element.name}/>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
 
     </View>

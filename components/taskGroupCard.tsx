@@ -2,8 +2,21 @@ import { StyleSheet, View, Text, Pressable, Dimensions} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ProgressChart } from "react-native-chart-kit";
 import { Colors } from "../constants/Colors";
+import {useState, useEffect} from "react";
+import { useSQLiteContext } from "expo-sqlite";
+import { drizzle } from "drizzle-orm/expo-sqlite";
+import { eq, count } from 'drizzle-orm';
+import {Todo} from "@/db/schema";
 
-export default function TaskGroupCard () {
+import * as schema from "@/db/schema";
+
+type TaskGroupProp = {
+    id: number
+    name: string
+ 
+}
+
+export default function TaskGroupCard ({id, name}: TaskGroupProp) {
 
     const screenWidth = Dimensions.get("window").width;
     const cardWidth = screenWidth * 0.85;
@@ -19,10 +32,37 @@ export default function TaskGroupCard () {
         useShadowColorFromDataset: false 
     };
 
-    const data = {
+    const Chartdata = {
         labels: ["Swim"],
         data: [0.32]
     };
+
+    // data
+      const [data, setData] = useState<Todo[]>([]);
+      const [taskCount, setTaskCount] = useState(0)
+      const db = useSQLiteContext();
+      const drizzleDb = drizzle(db, {schema});
+    
+      useEffect(() => {
+        const load = async () => {
+          const data = await drizzleDb
+          .select()
+          .from(schema.todos)
+          .where(eq(schema.todos.task_group_id, id))
+          // console.log("data: ", data)
+          setData(data)
+
+          const result = await drizzleDb
+          .select({count: count()})
+          .from(schema.todos)
+          .where(eq(schema.todos.task_group_id, id))
+          const value = result[0]?.count ?? 0;
+          setTaskCount(value)
+        };
+    
+        load();
+      }, []);
+    
 
     return(
 
@@ -34,8 +74,8 @@ export default function TaskGroupCard () {
 
             <View style = {styles.textContainer}> 
 
-                <Text style = {styles.taskTitle} >Calc 2 Study</Text>  
-                <Text  style = {styles.taskSubTitle}>25 Tasks</Text>
+                <Text style = {styles.taskTitle} >{name}</Text>  
+                <Text  style = {styles.taskSubTitle}>{taskCount}. Tasks</Text>
 
             </View>
 
@@ -43,7 +83,7 @@ export default function TaskGroupCard () {
 
             <View style={styles.chartContainer}>
                 <ProgressChart
-                    data ={data}
+                    data ={Chartdata}
                     width= {chartWidth} 
                     height={100} 
                     strokeWidth={8}
