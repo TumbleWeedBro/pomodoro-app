@@ -13,6 +13,8 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import * as SQLite from 'expo-sqlite';
 import { SQLiteProvider } from 'expo-sqlite';
 export const DATABASE_NAME ='tasks';
+import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
+
 
 // contexts
 import { AddModal } from "@/components/modal/addModal";
@@ -23,6 +25,7 @@ export default function RootLayout()  {
   const expo = SQLite.openDatabaseSync(DATABASE_NAME);
   const db = drizzle(expo);
   const { success, error } = useMigrations(db, migrations)
+  useDrizzleStudio(expo);
 
   // console.log("Success: ", success);
   // console.log("Error: ", error);
