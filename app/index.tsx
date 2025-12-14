@@ -37,7 +37,8 @@ export default function HomeScreen() {
           contentContainerStyle = {{
             gap:15,
             paddingVertical:20,
-            paddingHorizontal:5
+            paddingHorizontal:5,
+            paddingBottom:150,
           }}>
           <WelcomeCard />
           <Text style = {styles.text}>Quick Focus</Text>

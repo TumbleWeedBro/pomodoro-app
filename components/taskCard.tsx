@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity} from "react-native";
 import React, {useState} from 'react';
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from '@expo/vector-icons';
+import { DimensionValue } from "@/constants/Dimensions";
 
 type TaskCardProp = {
     task:string
@@ -34,9 +35,10 @@ const styles = StyleSheet.create({
     },
 
     taskTitle: {
-        fontSize: 25,
+        fontSize: 20 ,
         fontWeight: '600',
         color: Colors.textlight,
+        overflow: 'hidden',
     },
 })
 

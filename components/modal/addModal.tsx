@@ -78,14 +78,6 @@ export const AddModal = () => {
     )
 }
 
-
-
-
-
-
-
-
-
 const styles = StyleSheet.create({
        modalContainer :{
         position:'absolute',

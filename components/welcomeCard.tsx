@@ -2,12 +2,11 @@ import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Dimensions} from 'react-native';
 import { ProgressChart } from "react-native-chart-kit";
 import { Colors } from "../constants/Colors";
+import { DimensionValue } from "../constants/Dimensions";
 
 export default function WelcomeCard () {
-    const screenWidth = Dimensions.get("window").width;
-    const cardWidth = screenWidth * 0.85;
-    const chartWidth = screenWidth * 0.45; 
-    
+
+
     const chartConfig = {
         backgroundGradientFrom: "#1E2923",
         backgroundGradientFromOpacity: 0,
@@ -36,10 +35,10 @@ export default function WelcomeCard () {
             <View style={styles.chartContainer}>
                 <ProgressChart
                     data ={data}
-                    width= {chartWidth} 
-                    height={180} 
+                    width= {DimensionValue.chartSize} 
+                    height={DimensionValue.chartSize}
                     strokeWidth={20}
-                    radius={70} 
+                    radius={DimensionValue.chartSize / 2.7} 
                     chartConfig={chartConfig}
                     hideLegend = {true}
                 />
@@ -59,7 +58,6 @@ const styles = StyleSheet.create({
         paddingVertical:2,
         paddingLeft:13,
         width: '100%' ,
-        height: 170,
         backgroundColor: Colors.surface,
         borderRadius:30,    
         overflow: 'hidden', 
@@ -68,10 +66,9 @@ const styles = StyleSheet.create({
 
     textContainer: {
         // backgroundColor: Colors.primary,
-        flex: 1, 
+        flex: 1.2, 
         // flexWrap: 'wrap', 
-        justifyContent: 'space-around', 
-        height: '100%', 
+        justifyContent: 'space-between', 
     },
     
     chartContainer: {
@@ -83,11 +80,11 @@ const styles = StyleSheet.create({
 
     text: {
         maxWidth:'90%',
-        fontSize: 25
+        fontSize: 22 * DimensionValue.scale,
     },
     buttontext: {
         maxWidth:'80%',
-        fontSize: 23,
+        fontSize: 20 * DimensionValue.scale,
         fontWeight: 'semibold',
         color: Colors.textlight
     },

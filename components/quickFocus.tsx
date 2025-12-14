@@ -47,15 +47,15 @@ const styles = StyleSheet.create({
         flexDirection:"row",
         // backgroundColor: Colors.surface,
         width: '100%',
-        height: 150,
-        gap:10,
+        height: '20%',
+        gap:4,
+        
     },
 
     clockContainer:{
         position:'relative',
         backgroundColor: Colors.surface,
-        width:'35%',
-        flex: 1,
+        flex: 0.5,
         borderRadius: 30,
         justifyContent: 'space-evenly',
         alignItems: 'center'
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
         position:'relative',
         paddingLeft:5,
         backgroundColor: Colors.surface,
-        width:'55%',
+        flex: 0.5,
         borderRadius: 30,
         alignItems: 'center',
         justifyContent:'center'

@@ -75,7 +75,7 @@ export default function TaskGroupCard ({id, name}: TaskGroupProp) {
             <View style = {styles.textContainer}> 
 
                 <Text style = {styles.taskTitle} >{name}</Text>  
-                <Text  style = {styles.taskSubTitle}>{taskCount}. Tasks</Text>
+                <Text  style = {styles.taskSubTitle}>{taskCount} Tasks</Text>
 
             </View>
 
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     },
 
     taskTitle: {
-        fontSize: 25,
+        fontSize: 20,
         fontWeight: '600',
         color: Colors.text,
     },

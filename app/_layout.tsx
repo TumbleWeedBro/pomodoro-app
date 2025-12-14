@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { BottomNav } from "../components/bottomNav";
 import HeaderCard from "../components/headerCard";
@@ -14,7 +14,7 @@ import * as SQLite from 'expo-sqlite';
 import { SQLiteProvider } from 'expo-sqlite';
 export const DATABASE_NAME ='tasks';
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
-
+import { addDummyData } from "@/scripts/addDummyData";
 
 // contexts
 import { AddModal } from "@/components/modal/addModal";
@@ -59,7 +59,7 @@ export default function RootLayout()  {
                       contentStyle: {
                         backgroundColor: theme.background,
                         justifyContent:'center',
-                       
+                      
                       },
                     }}>         
                   </Stack>
@@ -78,6 +78,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1, 
     backgroundColor: Colors.background,
+    paddingTop: 5,
   }
 })
 
