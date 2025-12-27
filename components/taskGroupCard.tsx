@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, Pressable, Dimensions} from 'react-native';
+import { StyleSheet, View, Text, Pressable, Dimensions, Alert} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ProgressChart } from "react-native-chart-kit";
 import { Colors } from "../constants/Colors";
@@ -8,15 +8,17 @@ import { drizzle } from "drizzle-orm/expo-sqlite";
 import { eq, count } from 'drizzle-orm';
 import {Todo} from "@/db/schema";
 import { useRefresh } from "@/context/refreshContext";
+import { EditTaskGroupModal } from "./modal/editTaskGroupModal";
 import * as schema from "@/db/schema";
 
 type TaskGroupProp = {
     id: number
     name: string
- 
+    onPress?: () => void;
+    onLongPress?: () => void;
 }
 
-export default function TaskGroupCard ({id, name}: TaskGroupProp) {
+export default function TaskGroupCard ({id, name, onPress, onLongPress}: TaskGroupProp) {
 
     const screenWidth = Dimensions.get("window").width;
     const cardWidth = screenWidth * 0.85;
@@ -40,9 +42,10 @@ export default function TaskGroupCard ({id, name}: TaskGroupProp) {
     // data
       const [data, setData] = useState<Todo[]>([]);
       const [taskCount, setTaskCount] = useState(0)
+      const [showEditModal, setShowEditModal] = useState(false);
       const db = useSQLiteContext();
       const drizzleDb = drizzle(db, {schema});
-      const { refreshKey } = useRefresh();
+      const { refreshKey, triggerRefresh } = useRefresh();
     
       const loadTasks = useCallback(async () => {
         try {
@@ -67,11 +70,80 @@ export default function TaskGroupCard ({id, name}: TaskGroupProp) {
       useEffect(() => {
         loadTasks();
       }, [loadTasks, refreshKey]);
+
+    const handleLongPress = () => {
+        if (onLongPress) {
+            onLongPress();
+            return;
+        }
+        
+        Alert.alert(
+            name,
+            "Choose an action",
+            [
+                {
+                    text: "Edit",
+                    onPress: () => setShowEditModal(true),
+                },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: () => handleDelete(),
+                },
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+            ],
+            { cancelable: true }
+        );
+    };
+
+    const handleDelete = () => {
+        Alert.alert(
+            "Delete Task Group",
+            `Are you sure you want to delete "${name}"? This will also delete all tasks in this group.`,
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            // Delete all tasks in this group first
+                            await drizzleDb
+                                .delete(schema.todos)
+                                .where(eq(schema.todos.task_group_id, id));
+                            
+                            // Then delete the task group
+                            await drizzleDb
+                                .delete(schema.task_groups)
+                                .where(eq(schema.task_groups.id, id));
+                            
+                            triggerRefresh();
+                        } catch (error) {
+                            console.error('Error deleting task group:', error);
+                            Alert.alert('Error', 'Failed to delete task group. Please try again.');
+                        }
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
     
 
     return(
-
-    <View style = {styles.container}>
+    <>
+    <Pressable 
+        style = {styles.container}
+        onPress={onPress}
+        onLongPress={handleLongPress}
+        delayLongPress={500}
+    >
         <View style = {styles.groupContainer}>
             <View style = {styles.iconContainer}>
                 <Ionicons name="book-outline" size={40} color={Colors.surface} />
@@ -102,8 +174,14 @@ export default function TaskGroupCard ({id, name}: TaskGroupProp) {
                 </View>
             </View>
 
-    </View>
-
+    </Pressable>
+    <EditTaskGroupModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        taskGroupId={id}
+        currentName={name}
+    />
+    </>
     )
 
 }

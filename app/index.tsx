@@ -58,15 +58,12 @@ export default function HomeScreen() {
           <Text style = {styles.text}>Task Groups</Text>
           {/* probably some loop to display task groups here */}
           {data.map((element, i) => (
-            <TouchableOpacity
+            <TaskGroupCard
               key={element.id ?? i}
+              id={element.id}
+              name={element.name}
               onPress={() => router.push({ pathname: './tasks', params: { taskGroupId: element.id } })}
-            >
-              <TaskGroupCard
-              key={element.id}
-              id ={element.id}
-              name={element.name}/>
-            </TouchableOpacity>
+            />
           ))}
         </ScrollView>
 
