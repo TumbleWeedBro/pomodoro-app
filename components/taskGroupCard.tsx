@@ -1,15 +1,15 @@
-import { StyleSheet, View, Text, Pressable, Dimensions, Alert} from 'react-native';
+import { useRefresh } from "@/context/refreshContext";
+import * as schema from "@/db/schema";
+import { Todo } from "@/db/schema";
 import { Ionicons } from '@expo/vector-icons';
+import { eq } from 'drizzle-orm';
+import { drizzle } from "drizzle-orm/expo-sqlite";
+import { useSQLiteContext } from "expo-sqlite";
+import { useCallback, useEffect, useState } from "react";
+import { Alert, Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ProgressChart } from "react-native-chart-kit";
 import { Colors } from "../constants/Colors";
-import {useState, useEffect, useCallback} from "react";
-import { useSQLiteContext } from "expo-sqlite";
-import { drizzle } from "drizzle-orm/expo-sqlite";
-import { eq, count } from 'drizzle-orm';
-import {Todo} from "@/db/schema";
-import { useRefresh } from "@/context/refreshContext";
 import { EditTaskGroupModal } from "./modal/editTaskGroupModal";
-import * as schema from "@/db/schema";
 
 type TaskGroupProp = {
     id: number
@@ -34,14 +34,12 @@ export default function TaskGroupCard ({id, name, onPress, onLongPress}: TaskGro
         useShadowColorFromDataset: false 
     };
 
-    const Chartdata = {
-        labels: ["Swim"],
-        data: [0.32]
-    };
+    // chart data will be computed from tasks below
 
-    // data
-      const [data, setData] = useState<Todo[]>([]);
-      const [taskCount, setTaskCount] = useState(0)
+        // data
+            const [data, setData] = useState<Todo[]>([]);
+            const [taskCount, setTaskCount] = useState(0)
+            const [completedCount, setCompletedCount] = useState(0);
       const [showEditModal, setShowEditModal] = useState(false);
       const db = useSQLiteContext();
       const drizzleDb = drizzle(db, {schema});
@@ -53,14 +51,13 @@ export default function TaskGroupCard ({id, name, onPress, onLongPress}: TaskGro
             .select()
             .from(schema.todos)
             .where(eq(schema.todos.task_group_id, id));
-          setData(taskData);
+                    setData(taskData);
 
-          const result = await drizzleDb
-            .select({count: count()})
-            .from(schema.todos)
-            .where(eq(schema.todos.task_group_id, id));
-          const value = result[0]?.count ?? 0;
-          setTaskCount(value);
+                    const value = taskData?.length ?? 0;
+                    setTaskCount(value);
+
+                    const completed = taskData.filter((t) => t.completed === 1).length;
+                    setCompletedCount(completed);
         } catch (error) {
           console.error('Error loading tasks:', error);
         }
@@ -160,7 +157,7 @@ export default function TaskGroupCard ({id, name, onPress, onLongPress}: TaskGro
 
             <View style={styles.chartContainer}>
                 <ProgressChart
-                    data ={Chartdata}
+                    data ={{ labels: ["Tasks"], data: [ taskCount > 0 ? completedCount / taskCount : 0 ] }}
                     width= {chartWidth} 
                     height={100} 
                     strokeWidth={8}
@@ -170,7 +167,7 @@ export default function TaskGroupCard ({id, name, onPress, onLongPress}: TaskGro
                 />
 
                 <View style={styles.progressTextContainer}>
-                    <Text style={styles.progressText}>32%</Text>
+                    <Text style={styles.progressText}>{Math.round((taskCount > 0 ? (completedCount / taskCount) : 0) * 100)}%</Text>
                 </View>
             </View>
 

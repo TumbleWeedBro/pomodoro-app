@@ -1,20 +1,23 @@
-import { View, Text, StyleSheet, TouchableOpacity} from "react-native";
-import React, {useState} from 'react';
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from '@expo/vector-icons';
-import { DimensionValue } from "@/constants/Dimensions";
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
+import type { Todo } from "@/db/schema";
 
 type TaskCardProp = {
-    task:string
+    taskObj: Todo,
+    onToggle: () => void,
 }
 
-const TaskCard = ({task}:TaskCardProp) => {
+const TaskCard = ({taskObj, onToggle}:TaskCardProp) => {
+    const completed = taskObj.completed === 1;
     return(
         <View style = {styles.taskCard}>
-            <TouchableOpacity>
-                <Ionicons name="ellipse-outline" size={40} color={Colors.surface} />
+            <TouchableOpacity onPress={onToggle}>
+                <Ionicons name={completed ? "checkmark-circle" : "ellipse-outline"} size={36} color={completed ? Colors.primary : Colors.surface} />
             </TouchableOpacity>
-            <Text style = {styles.taskTitle}>{task}</Text>
+            <Text style = {[styles.taskTitle, completed && styles.completedTitle]} numberOfLines={1}>{taskObj.title}</Text>
         </View>
     )
 }
@@ -39,6 +42,11 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: Colors.textlight,
         overflow: 'hidden',
+    },
+
+    completedTitle: {
+        textDecorationLine: 'line-through',
+        color: Colors.inactive || '#9e9e9e',
     },
 })
 
