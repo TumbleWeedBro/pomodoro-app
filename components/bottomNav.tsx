@@ -50,9 +50,10 @@ export const BottomNav = () => {
                 <Ionicons name="stats-chart-outline" size={40} color={Colors.surface} />
             </TouchableOpacity>
 
-            <View style={{ position: 'absolute', bottom: '40%', right: '10%' }}>
+            <TouchableOpacity style={{ position: 'absolute', bottom: '40%', right: '10%' }}
+                onPress={() => router.push('/profile')}>
                 <Ionicons name="person" size={40} color={Colors.accentDark} />
-            </View>
+            </TouchableOpacity>
 
         </View>
     )
