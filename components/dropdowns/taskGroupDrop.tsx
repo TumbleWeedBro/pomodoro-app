@@ -4,15 +4,17 @@ import * as schema from '@/db/schema';
 import { TaskGroup } from '@/db/schema';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 
 interface TaskGroupDropdownProps {
   onTaskGroupSelect?: (taskGroupId: number | null) => void;
+  onRefreshRef?: React.MutableRefObject<(() => Promise<void>) | null>;
+  selectedTaskGroupId?: number | null;
 }
 
-const TaskGroupDropdown: React.FC<TaskGroupDropdownProps> = ({ onTaskGroupSelect }) => {
+const TaskGroupDropdown: React.FC<TaskGroupDropdownProps> = ({ onTaskGroupSelect, onRefreshRef, selectedTaskGroupId }) => {
   // All hooks must be called in the same order every render
   const [isFocus, setIsFocus] = useState(false);
   const [taskGroup, setTaskGroup] = useState<number | null>(null);
@@ -25,18 +27,32 @@ const TaskGroupDropdown: React.FC<TaskGroupDropdownProps> = ({ onTaskGroupSelect
   // Use useMemo to avoid recreating drizzle instance on every render
   const drizzleDb = useMemo(() => drizzle(db, { schema }), [db]);
 
+  // Function to load task groups
+  const loadTaskGroups = useCallback(async () => {
+    try {
+      const groups = await drizzleDb.query.task_groups.findMany();
+      setTaskGroups(groups);
+    } catch (error) {
+      console.error('Error loading task groups:', error);
+    }
+  }, [drizzleDb]);
+
   // useEffect must always be called - no conditions
   useEffect(() => {
-    const loadTaskGroups = async () => {
-      try {
-        const groups = await drizzleDb.query.task_groups.findMany();
-        setTaskGroups(groups);
-      } catch (error) {
-        console.error('Error loading task groups:', error);
+    loadTaskGroups();
+  }, [loadTaskGroups]);
+
+  // Expose refresh function via ref
+  useEffect(() => {
+    if (onRefreshRef) {
+      onRefreshRef.current = loadTaskGroups;
+    }
+    return () => {
+      if (onRefreshRef) {
+        onRefreshRef.current = null;
       }
     };
-    loadTaskGroups();
-  }, [drizzleDb]);
+  }, [onRefreshRef, loadTaskGroups]);
 
   // Helper functions that use the context (won't throw, just no-op if context not available)
   const setTaskGroupTrue = () => {
@@ -67,6 +83,13 @@ const TaskGroupDropdown: React.FC<TaskGroupDropdownProps> = ({ onTaskGroupSelect
     setTaskGroupFalse();
     onTaskGroupSelect?.(selectedId);
   }
+
+  // Update selected task group when prop changes
+  useEffect(() => {
+    if (selectedTaskGroupId !== null && selectedTaskGroupId !== undefined) {
+      setTaskGroup(selectedTaskGroupId);
+    }
+  }, [selectedTaskGroupId]);
 
   const taskGroupOptions = [
     { value: 'CTG', label: 'Create Task Group' },

@@ -2,12 +2,12 @@ import { StyleSheet, View, Text, Pressable, Dimensions} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ProgressChart } from "react-native-chart-kit";
 import { Colors } from "../constants/Colors";
-import {useState, useEffect} from "react";
+import {useState, useEffect, useCallback} from "react";
 import { useSQLiteContext } from "expo-sqlite";
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import { eq, count } from 'drizzle-orm';
 import {Todo} from "@/db/schema";
-
+import { useRefresh } from "@/context/refreshContext";
 import * as schema from "@/db/schema";
 
 type TaskGroupProp = {
@@ -42,26 +42,31 @@ export default function TaskGroupCard ({id, name}: TaskGroupProp) {
       const [taskCount, setTaskCount] = useState(0)
       const db = useSQLiteContext();
       const drizzleDb = drizzle(db, {schema});
+      const { refreshKey } = useRefresh();
     
-      useEffect(() => {
-        const load = async () => {
-          const data = await drizzleDb
-          .select()
-          .from(schema.todos)
-          .where(eq(schema.todos.task_group_id, id))
-          // console.log("data: ", data)
-          setData(data)
+      const loadTasks = useCallback(async () => {
+        try {
+          const taskData = await drizzleDb
+            .select()
+            .from(schema.todos)
+            .where(eq(schema.todos.task_group_id, id));
+          setData(taskData);
 
           const result = await drizzleDb
-          .select({count: count()})
-          .from(schema.todos)
-          .where(eq(schema.todos.task_group_id, id))
+            .select({count: count()})
+            .from(schema.todos)
+            .where(eq(schema.todos.task_group_id, id));
           const value = result[0]?.count ?? 0;
-          setTaskCount(value)
-        };
-    
-        load();
-      }, []);
+          setTaskCount(value);
+        } catch (error) {
+          console.error('Error loading tasks:', error);
+        }
+      }, [drizzleDb, id]);
+
+      // Load on mount, when id changes, and when refreshKey changes
+      useEffect(() => {
+        loadTasks();
+      }, [loadTasks, refreshKey]);
     
 
     return(

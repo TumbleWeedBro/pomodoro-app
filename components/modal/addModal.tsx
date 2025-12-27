@@ -1,16 +1,17 @@
 import { CreateModal } from "@/components/modal/modal";
+import { CreateTaskContext, CreateTaskContextType } from '@/context/createTaskGroupContext';
+import { useRefresh } from '@/context/refreshContext';
+import * as schema from '@/db/schema';
+import { task_groups, todos } from '@/db/schema';
 import useModal from "@/hooks/useModalContext";
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState, useMemo } from "react";
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { useSQLiteContext } from 'expo-sqlite';
+import React, { useMemo, useRef, useState } from "react";
+import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Colors } from "../../constants/Colors";
 import TaskGroupDropdown from "../dropdowns/taskGroupDrop";
-import DateTimePicker from "@react-native-community/datetimepicker"
-import { CreateTaskContext, CreateTaskContextType } from '@/context/createTaskGroupContext';
-import { useSQLiteContext } from 'expo-sqlite';
-import { drizzle } from 'drizzle-orm/expo-sqlite';
-import * as schema from '@/db/schema';
-import { todos } from '@/db/schema';
 
 
 export const AddModal = () => {
@@ -21,12 +22,24 @@ export const AddModal = () => {
     const [taskTitle, setTaskTitle] = useState('');
     const [selectedTaskGroupId, setSelectedTaskGroupId] = useState<number | null>(null);
     const [priority, setPriority] = useState<number | null>(null);
+    const [newTaskGroupName, setNewTaskGroupName] = useState('');
+    const [newTaskGroupColor, setNewTaskGroupColor] = useState(Colors.primary);
+    const refreshTaskGroupsRef = useRef<(() => Promise<void>) | null>(null);
+    const { triggerRefresh } = useRefresh();
     const db = useSQLiteContext();
     const { close, modalOpen } = useModal();
     
     // Use useMemo to avoid recreating drizzle instance on every render
     const drizzleDb = useMemo(() => drizzle(db, { schema }), [db]);
     const createTaskGroupState: CreateTaskContextType = [CreateTaskGroup, setCreateTaskGroup];
+
+    // Available colors for task groups
+    const availableColors = [
+        { name: 'Red', value: Colors.primary },
+        { name: 'Blue', value: Colors.blue },
+        { name: 'Green', value: Colors.green },
+        { name: 'Yellow', value: Colors.yellow },
+    ];
 
     const onChange = ({type}:any, selectedDate:any) => {
         if(type == "set") {
@@ -45,6 +58,45 @@ export const AddModal = () => {
 
     const toggleDatePicker = () => {
         setShowPicker(!showPicker);
+    };
+
+    const handleCreateTaskGroup = async () => {
+        if (!newTaskGroupName.trim()) {
+            Alert.alert('Error', 'Please enter a task group name');
+            return;
+        }
+
+        try {
+            const dateCreated = new Date().toISOString();
+            const result = await drizzleDb.insert(task_groups).values({
+                name: newTaskGroupName.trim(),
+                color: newTaskGroupColor,
+                date_created: dateCreated,
+            }).returning({ id: task_groups.id });
+
+            const newTaskGroupId = result[0]?.id;
+            if (newTaskGroupId) {
+                // Refresh task groups in dropdown and wait for it to complete
+                if (refreshTaskGroupsRef.current) {
+                    await refreshTaskGroupsRef.current();
+                }
+                
+                // Trigger global refresh
+                triggerRefresh();
+                
+                // Small delay to ensure state updates
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Select the newly created task group
+                setSelectedTaskGroupId(newTaskGroupId);
+                setCreateTaskGroup(false);
+                setNewTaskGroupName('');
+                setNewTaskGroupColor(Colors.primary);
+            }
+        } catch (error) {
+            console.error('Error creating task group:', error);
+            Alert.alert('Error', 'Failed to create task group. Please try again.');
+        }
     };
 
     const handleSaveTask = async () => {
@@ -71,11 +123,15 @@ export const AddModal = () => {
                 task_group_id: selectedTaskGroupId,
             });
 
+            // Trigger global refresh to update all views
+            triggerRefresh();
+
             // Reset form
             setTaskTitle('');
             setDate(new Date());
             setSelectedTaskGroupId(null);
             setPriority(null);
+            setCreateTaskGroup(false);
             close();
         } catch (error) {
             console.error('Error saving task:', error);
@@ -87,30 +143,58 @@ export const AddModal = () => {
            <CreateTaskContext.Provider value={[CreateTaskGroup ,setCreateTaskGroup]}>
             <CreateModal isOpen={modalOpen} withInput>
                 <View style={styles.modalContainer}>
-                    <TaskGroupDropdown onTaskGroupSelect={setSelectedTaskGroupId} />
-                    <View style = {styles.inputContainer}>
-                        {showPicker && (
-                            <DateTimePicker
-                                mode="date"
-                                display="spinner"
-                                value={date}
-                                onChange={onChange}
+                    <TaskGroupDropdown 
+                        onTaskGroupSelect={setSelectedTaskGroupId}
+                        onRefreshRef={refreshTaskGroupsRef}
+                        selectedTaskGroupId={selectedTaskGroupId}
+                    />
+                    {CreateTaskGroup ? (
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>Task Group Name</Text>
+                            <TextInput
+                                placeholder='Enter task group name'
+                                style={styles.taskTitle}
+                                value={newTaskGroupName}
+                                onChangeText={setNewTaskGroupName}
                             />
-                        )}
-                        {!CreateTaskGroup &&(
+                            <Text style={styles.label}>Choose Color</Text>
+                            <View style={styles.colorContainer}>
+                                {availableColors.map((color) => (
+                                    <TouchableOpacity
+                                        key={color.name}
+                                        onPress={() => setNewTaskGroupColor(color.value)}
+                                        style={[
+                                            styles.colorOption,
+                                            { backgroundColor: color.value },
+                                            newTaskGroupColor === color.value && styles.colorOptionSelected
+                                        ]}
+                                    />
+                                ))}
+                            </View>
+                        </View>
+                    ) : (
+                        <View style = {styles.inputContainer}>
+                            {showPicker && (
+                                <DateTimePicker
+                                    mode="date"
+                                    display="spinner"
+                                    value={date}
+                                    onChange={onChange}
+                                />
+                            )}
                             <TouchableOpacity onPress = {toggleDatePicker}>
                                 <View style={styles.dateContainer}>
                                     <Text style = {{fontSize: 20, padding: 10}}>{date.toLocaleDateString()}</Text>
                                 </View>
                             </TouchableOpacity>
-                        )}
-                        <TextInput
-                            placeholder='Task title'
-                            style = {styles.taskTitle}
-                            value={taskTitle}
-                            onChangeText={setTaskTitle}
-                        />
-                    </View>
+                            <TextInput
+                                placeholder='Task title'
+                                style = {styles.taskTitle}
+                                value={taskTitle}
+                                onChangeText={setTaskTitle}
+                            />
+                        </View>
+                    )}
                     
                     {!CreateTaskGroup && (
                         <View style={styles.priorityContainer}>
@@ -144,12 +228,15 @@ export const AddModal = () => {
                             setDate(new Date());
                             setSelectedTaskGroupId(null);
                             setPriority(null);
+                            setCreateTaskGroup(false);
+                            setNewTaskGroupName('');
+                            setNewTaskGroupColor(Colors.primary);
                             close();
                         }}>
                                 <Ionicons name="close-circle-outline" size={40} color={Colors.primary} />
                         </TouchableOpacity>
 
-                        <TouchableOpacity style= {{padding:0, margin:0}} onPress={handleSaveTask}>
+                        <TouchableOpacity style= {{padding:0, margin:0}} onPress={CreateTaskGroup ? handleCreateTaskGroup : handleSaveTask}>
                                 <Ionicons name="checkmark-circle-outline" size={40} color={Colors.green} />
                         </TouchableOpacity>
                     </View>
@@ -208,6 +295,34 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         borderWidth: 1,
         borderColor: Colors.black,
+    },
+
+    label: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: Colors.text,
+        marginBottom: 8,
+        marginTop: 10,
+    },
+
+    colorContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: 10,
+        marginBottom: 10,
+    },
+
+    colorOption: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        borderWidth: 2,
+        borderColor: Colors.black,
+    },
+
+    colorOptionSelected: {
+        borderWidth: 4,
+        borderColor: Colors.primary,
     },
 
 })
