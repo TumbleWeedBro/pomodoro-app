@@ -1,32 +1,79 @@
 import { Colors } from '@/constants/Colors';
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CreateTaskContext } from '@/context/createTaskGroupContext';
+import * as schema from '@/db/schema';
+import { TaskGroup } from '@/db/schema';
+import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { useSQLiteContext } from 'expo-sqlite';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import { Ionicons } from '@expo/vector-icons';
-import { CreateTaskState } from '@/hooks/createTaskGroupContext';
 
-const TaskGroupDropdown = () => {
-  const [country, setCountry] = useState(null);
+interface TaskGroupDropdownProps {
+  onTaskGroupSelect?: (taskGroupId: number | null) => void;
+}
+
+const TaskGroupDropdown: React.FC<TaskGroupDropdownProps> = ({ onTaskGroupSelect }) => {
+  // All hooks must be called in the same order every render
   const [isFocus, setIsFocus] = useState(false);
-  const [taskGroup , setTaskGroup] = useState(null);
-  const { setTaskGroupTrue, setTaskGroupFalse } = CreateTaskState();
+  const [taskGroup, setTaskGroup] = useState<number | null>(null);
+  const [taskGroups, setTaskGroups] = useState<TaskGroup[]>([]);
+  
+  // Call all hooks unconditionally in consistent order
+  const db = useSQLiteContext();
+  const taskState = useContext(CreateTaskContext);
+  
+  // Use useMemo to avoid recreating drizzle instance on every render
+  const drizzleDb = useMemo(() => drizzle(db, { schema }), [db]);
 
-  const onChangeTaskGroup = (item:any) => {
-    if(item.value === 'CTG') {
+  // useEffect must always be called - no conditions
+  useEffect(() => {
+    const loadTaskGroups = async () => {
+      try {
+        const groups = await drizzleDb.query.task_groups.findMany();
+        setTaskGroups(groups);
+      } catch (error) {
+        console.error('Error loading task groups:', error);
+      }
+    };
+    loadTaskGroups();
+  }, [drizzleDb]);
+
+  // Helper functions that use the context (won't throw, just no-op if context not available)
+  const setTaskGroupTrue = () => {
+    if (taskState) {
+      const [, setCreateTaskGroup] = taskState;
+      setCreateTaskGroup(true);
+    }
+  };
+
+  const setTaskGroupFalse = () => {
+    if (taskState) {
+      const [, setCreateTaskGroup] = taskState;
+      setCreateTaskGroup(false);
+    }
+  };
+
+  const onChangeTaskGroup = (item: any) => {
+    if (item.value === 'CTG') {
       setTaskGroupTrue();
+      setTaskGroup(null);
+      onTaskGroupSelect?.(null);
       return;
     }
 
-    setTaskGroup(item.value);
+    const selectedId = item.value as number;
+    setTaskGroup(selectedId);
     setIsFocus(false);
-    setTaskGroupFalse
+    setTaskGroupFalse();
+    onTaskGroupSelect?.(selectedId);
   }
-  
-  const existingTaskGroups:any = {};
-  // Static data
-  const taskGroupOptions  = [
+
+  const taskGroupOptions = [
     { value: 'CTG', label: 'Create Task Group' },
-    { value: 'ATV', label: 'Another task' },
+    ...taskGroups.map((group) => ({
+      value: group.id,
+      label: group.name,
+    })),
   ];
 
   return (
@@ -47,11 +94,6 @@ const TaskGroupDropdown = () => {
             onBlur={() => setIsFocus(false)}
             onChange={onChangeTaskGroup}
           />
-        </View>
-        <View style={styles.priorityContainer}>
-            <Ionicons name="flag-outline" size={30} color={Colors.primary} />
-            <Ionicons name="flag-outline" size={30} color={Colors.yellow} />
-            <Ionicons name="flag-outline" size={30} color={Colors.green} />
         </View>
     </View>
   );
