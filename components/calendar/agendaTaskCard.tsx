@@ -1,23 +1,35 @@
-import { StyleSheet, View, Text, TouchableOpacity, TextInput} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
+import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface AgendaTaskCardProps {
-    key: string;
     title: string;
     subtitle: string;
+    date?: string; // expected format: YYYY-MM-DD
+    onDelete?: () => void;
 }
 
+const AgendaTaskCard = ({ title, subtitle, date, onDelete }: AgendaTaskCardProps) => {
+    let day = '';
+    let month = '';
 
-
-const AgendaTaskCard = ({key, title, subtitle}: AgendaTaskCardProps) => {
+    if (date) {
+        const parts = date.split('-');
+        const localDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        day = localDate.getDate().toString();
+        month = localDate.toLocaleString('default', { month: 'short' });
+    } else {
+        const now = new Date();
+        day = now.getDate().toString();
+        month = now.toLocaleString('default', { month: 'short' });
+    }
     return(
 
     <View style = {styles.container}>
         <View style = {styles.groupContainer}>
             <View style = {styles.iconContainer}>
-                <Text style = { styles.dateText}>14</Text>
-                <Text style = { styles.dateText}>Jan</Text>
+                <Text style = { styles.dateText}>{day}</Text>
+                <Text style = { styles.dateText}>{month}</Text>
             </View>
 
             <View style = {styles.textContainer}> 
@@ -29,7 +41,8 @@ const AgendaTaskCard = ({key, title, subtitle}: AgendaTaskCardProps) => {
 
             <TouchableOpacity 
                 style={styles.chartContainer}
-                // onPress={() => onSave(title, subtitle)}
+                onPress={() => onDelete && onDelete()}
+                accessibilityLabel="Delete task"
                 >
                 <Ionicons name="trash-outline" size={30} color={Colors.primary} />
             </TouchableOpacity>

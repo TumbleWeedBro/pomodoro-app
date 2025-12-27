@@ -4,9 +4,10 @@ import { Colors } from "@/constants/Colors";
 import * as schema from "@/db/schema";
 import useModal from "@/hooks/useModalContext";
 import { drizzle, useLiveQuery } from "drizzle-orm/expo-sqlite";
+import { eq } from 'drizzle-orm';
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Alert } from "react-native"; // Added Alert
 
 export default function CalendarScreen() {
     const db = useSQLiteContext();
@@ -35,6 +36,32 @@ export default function CalendarScreen() {
         return grouped;
     }, [allTasks]);
 
+    // Moved handleDeleteTask OUT of handleDatePress
+    const handleDeleteTask = async (taskId: number) => {
+        Alert.alert(
+            'Delete Task',
+            'Are you sure you want to delete this task?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await drizzleDb
+                                .delete(schema.todos)
+                                .where(eq(schema.todos.id, taskId));
+                        } catch (error) {
+                            console.error('Failed to delete task', error);
+                            Alert.alert('Error', 'Failed to delete task.');
+                        }
+                    }
+                }
+            ],
+            { cancelable: true }
+        );
+    };
+
     const handleDatePress = (dateString: string) => {
         if (selectedDate === dateString) {
             // Same date tapped again → increment counter
@@ -44,19 +71,20 @@ export default function CalendarScreen() {
             if (newCount === 2) {
                 // double-tap detected, open modal with selected date
                 const dateParts = dateString.split('-');
-                // Create date object treating the string as local time to avoid timezone shifts
+                // Create date object treating the string as local time (Year, MonthIndex, Day)
                 const localDate = new Date(
-                    parseInt(dateParts[0]),
-                    parseInt(dateParts[1]) - 1,
+                    parseInt(dateParts[0]), 
+                    parseInt(dateParts[1]) - 1, 
                     parseInt(dateParts[2])
                 );
+                
                 openWithDate(localDate);
-                setTapCount(0);
+                setTapCount(0); // Reset tap count after action
             }
         } else {
             // Different date selected → reset
             setSelectedDate(dateString);
-            setTapCount(1);       // first tap
+            setTapCount(1); // first tap
         }
     };
 
@@ -72,6 +100,8 @@ export default function CalendarScreen() {
                         key={task.id.toString()}
                         title={task.title}
                         subtitle={task.priority ? `Priority ${task.priority}` : 'No Priority'}
+                        date={task.due_date}
+                        onDelete={() => handleDeleteTask(task.id)} // Added onDelete prop back
                     />
                 ))
             ) : (
@@ -104,5 +134,3 @@ const styles = StyleSheet.create({
         marginTop: 20
     }
 });
-
-
