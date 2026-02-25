@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 
     completedTitle: {
         textDecorationLine: 'line-through',
-        color: Colors.inactive || '#9e9e9e',
+        color: '#9e9e9e',
     },
 })
 
